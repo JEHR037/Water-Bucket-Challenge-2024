@@ -69,55 +69,65 @@ namespace WaterJugApi.Controllers
         }
 
         public static List<JugState>? GetSteps(int xCapacity, int yCapacity, int zAmountWanted)
+    {
+    int gcd(int a, int b)
+    {
+        if (b == 0)
+            return a;
+        return gcd(b, a % b);
+    }
+
+    if (zAmountWanted % gcd(xCapacity, yCapacity) != 0)
+    {
+        return null;
+    }
+    var queue = new Queue<JugState>();
+    var visited = new HashSet<(int, int)>();
+    queue.Enqueue(new JugState(0, 0, "Start", null));
+
+    while (queue.Count > 0)
+    {
+        var currentState = queue.Dequeue();
+
+        if (currentState.X == zAmountWanted || currentState.Y == zAmountWanted)
         {
-            var queue = new Queue<JugState>();
-            var visited = new HashSet<(int, int)>();
-            queue.Enqueue(new JugState(0, 0, "Start", null));
-
-            while (queue.Count > 0)
+            var solution = new List<JugState>();
+            while (currentState != null)
             {
-                var currentState = queue.Dequeue();
-
-                if (currentState.X == zAmountWanted || currentState.Y == zAmountWanted)
-                {
-                    var solution = new List<JugState>();
-                    while (currentState != null)
-                    {
-                        solution.Insert(0, currentState);
-                        currentState = currentState.Previous;
-                    }
-                    return solution;
-                }
-
-                if (visited.Contains((currentState.X, currentState.Y)))
-                {
-                    continue;
-                }
-
-                visited.Add((currentState.X, currentState.Y));
-
-                var nextStates = new List<JugState>
-                {
-                    new JugState(xCapacity, currentState.Y, "Fill X", currentState),
-                    new JugState(currentState.X, yCapacity, "Fill Y", currentState),
-                    new JugState(0, currentState.Y, "Empty X", currentState),
-                    new JugState(currentState.X, 0, "Empty Y", currentState),
-                    new JugState(currentState.X - Math.Min(currentState.X, yCapacity - currentState.Y), currentState.Y + Math.Min(currentState.X, yCapacity - currentState.Y), "Transfer X to Y", currentState),
-                    new JugState(currentState.X + Math.Min(currentState.Y, xCapacity - currentState.X), currentState.Y - Math.Min(currentState.Y, xCapacity - currentState.X), "Transfer Y to X", currentState)
-                };
-
-                foreach (var state in nextStates)
-                {
-                    if (!visited.Contains((state.X, state.Y)))
-                    {
-                        queue.Enqueue(state);
-                    }
-                }
+                solution.Insert(0, currentState);
+                currentState = currentState.Previous;
             }
-
-            return null;
+            return solution;
         }
 
+        if (visited.Contains((currentState.X, currentState.Y)))
+        {
+            continue;
+        }
+
+        visited.Add((currentState.X, currentState.Y));
+
+        var nextStates = new List<JugState>
+        {
+            new JugState(xCapacity, currentState.Y, "Fill X", currentState),
+            new JugState(currentState.X, yCapacity, "Fill Y", currentState),
+            new JugState(0, currentState.Y, "Empty X", currentState),
+            new JugState(currentState.X, 0, "Empty Y", currentState),
+            new JugState(currentState.X - Math.Min(currentState.X, yCapacity - currentState.Y), currentState.Y + Math.Min(currentState.X, yCapacity - currentState.Y), "Transfer X to Y", currentState),
+            new JugState(currentState.X + Math.Min(currentState.Y, xCapacity - currentState.X), currentState.Y - Math.Min(currentState.Y, xCapacity - currentState.X), "Transfer Y to X", currentState)
+        };
+
+        foreach (var state in nextStates)
+        {
+            if (!visited.Contains((state.X, state.Y)))
+            {
+                queue.Enqueue(state);
+            }
+        }
+    }
+
+    return null;
+    }
         public static List<SimpleJugState> SimplifySolution(List<JugState> solution)
         {
             var simpleSolution = new List<SimpleJugState>();
